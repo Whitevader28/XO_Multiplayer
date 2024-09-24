@@ -1,0 +1,20 @@
+.main-content-index {
+  text-align: center;
+  margin: 50px;
+}
+
+.game-modes {
+  display: flex;
+  flex-direction: row;
+  align-content: center;
+  justify-content: center;
+  gap: 60px;
+
+  margin-top: 60px;
+}
+
+.game-mode {
+  text-align: left;
+  flex: 1 1;
+  max-width: 300px;
+}

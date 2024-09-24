@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tic Tac Toe</title>
+
+  <script src="../scripts/modules/webSocketsModule.js" defer></script>
+  <script src="../scripts/index.js" defer></script>
+  <script src="../scripts/helper.js" defer></script>
+  <script src="../scripts/playingSolo.js" defer></script>
+  <script src="../scripts/onePage.js" defer></script>
+
+
+  <link rel="stylesheet" href="../styles/index.css">
+  <link rel="stylesheet" href="../styles/gameBoard.css">
+
+  <style>
+    .page {
+      display: none;
+    }
+
+    .active {
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="menu" class="page active">
+    <div class="main-content-index">
+      <h1>Welcome to my Tic Tac Toe game, choose a game mode:</h1>
+      <p id="connectionMessage">Connecting to server...</p>
+      <div class="game-modes">
+        <div class="game-mode">
+          <h2>Offline</h2>
+          <button id="offline">Single/Multiplayer</button>
+        </div>
+
+        <div class="game-mode">
+          <h2>Online</h2>
+          <p id="connectionError" style="color:blueviolet;"></p>
+          <p>Create a new room and invite a friend:</p>
+          <button id="onlineCreate">Create Room</button>
+          <p id="createdRoomId"></p>
+          <p>Join an existing room:</p>
+          <form onsubmit="joinSession(event)">
+            <label for="sessionId"></label>
+            <input type="text" id="sessionId" name="sessionId" placeholder="Session Id" required autocomplete="off">
+            <p id="joinError" style="color: red"></p>
+            <input type="submit" value="Join">
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="game-room" class="page">
+    <div class="main-content-game">
+      <h1 id="title">Tic Tac Toe<span id="roomId"> (you are not connected to a room yet)</span></h1>
+      <h3 id="winner">It's <span id="currentTurn">X</span> turn</h3>
+      <br>
+      <table id="playing-surface">
+        <colgroup>
+          <col id="col1">
+          <col id="col2">
+          <col id="col3">
+        </colgroup>
+        <tr id="row1">
+          <td id="11"></td>
+          <td id="12"></td>
+          <td id="13"></td>
+        </tr>
+        <tr id="row2">
+          <td id="21"></td>
+          <td id="22"></td>
+          <td id="23"></td>
+        </tr>
+        <tr id="row3">
+          <td id="31"></td>
+          <td id="32"></td>
+          <td id="33"></td>
+        </tr>
+      </table>
+      <h3 id="scoreBoard">
+        X: <span id="scoreX">0</span>&nbsp;&nbsp;&nbsp;&nbsp; O: <span id="score0">0</span>
+      </h3>
+    </div>
+  </div>
+</body>
+
+</html>

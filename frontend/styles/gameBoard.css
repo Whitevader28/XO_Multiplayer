@@ -1,0 +1,36 @@
+.main-content-game {
+  text-align: center;
+}
+
+.title {
+  margin-bottom: auto;
+}
+
+#playing-surface {
+  margin: auto;
+  border-collapse: collapse;
+  text-align: center;
+}
+
+#playing-surface tr {
+  font-size: 70px;
+  height: 100px;
+  width: 300px;
+}
+
+#playing-surface td {
+  margin: auto;
+  width: 100px;
+  height: 100px;
+  overflow: hidden;
+}
+
+#row1,
+#row2 {
+  border-bottom: 1px solid black;
+}
+
+#col1,
+#col2 {
+  border-right: 2px solid black;
+}

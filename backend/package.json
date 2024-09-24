@@ -1,0 +1,1 @@
+{"scripts":{"start":"node app.js","dev":"nodemon app.js"},"dependencies":{"cors":"^2.8.5","express":"^4.19.2","nodemon":"^3.1.4","ws":"^8.18.0"}}
