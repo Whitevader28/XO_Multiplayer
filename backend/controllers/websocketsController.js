@@ -50,7 +50,14 @@ exports.handleWebSocketClosing = (socket) => {
       toBeDisconnectedSocket = sessions[index].playerOSocket;
     }
 
-    if (toBeDisconnectedSocket) toBeDisconnectedSocket.close();
+    // We now treat what response will the other player get
+    if (toBeDisconnectedSocket) {
+      toBeDisconnectedSocket.send(
+        generateWebSocketResponse("roomDeleted", {
+          message: "The other player left",
+        })
+      );
+    }
 
     sessions.splice(index, 1);
   }

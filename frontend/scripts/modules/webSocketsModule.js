@@ -25,12 +25,13 @@ socket.onmessage = (event) => {
       break;
     case "roomDeleted":
       handleDeletedRoomResponse(parsedMessage);
+      break;
     case "error":
       console.log(parsedMessage.data.message);
       break;
 
     default:
-      console.log("Unkown event: ", message.event);
+      console.log("Unkown event: ", event);
   }
 };
 
@@ -42,8 +43,8 @@ function handleWebSocketClose() {
   window.location.reload(true);
 }
 
-function handleDeletedRoomResponse(respones) {
-  console.log(respone.data.message);
+function handleDeletedRoomResponse(response) {
+  console.log(response.data.message);
   window.location.hash = "#menu";
   document.getElementById("roomId").innerHTML =
     " (you are not connected to a room yet)";
