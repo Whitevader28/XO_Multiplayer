@@ -23,8 +23,8 @@ socket.onmessage = (event) => {
     case "roomJoined":
       handleRoomJoinedResponse(parsedMessage);
       break;
-    case "deleteRoom":
-      handleDeleteRoomResponse(parsedMessage);
+    case "roomDeleted":
+      handleDeletedRoomResponse(parsedMessage);
     case "error":
       console.log(parsedMessage.data.message);
       break;
@@ -39,12 +39,14 @@ socket.onclose = () => {
 };
 
 function handleWebSocketClose() {
-  document.getElementById("roomId").innnerHTML =
-    " (you are not connected to a room yet)";
+  window.location.reload(true);
 }
 
-function handleDeleteRoomResponse(respones) {
+function handleDeletedRoomResponse(respones) {
+  console.log(respone.data.message);
   window.location.hash = "#menu";
+  document.getElementById("roomId").innerHTML =
+    " (you are not connected to a room yet)";
 }
 
 function handleRoomCreatedResponse(id) {

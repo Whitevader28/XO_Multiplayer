@@ -31,6 +31,35 @@ exports.handleWebSocketConnection = (socket) => {
   // session.findIndex((session) => session.pla);
 };
 
+// If a player from a game leaves the session should be deleted and the other player disconnected from the session
+exports.handleWebSocketClosing = (socket) => {
+  const uniqueId = `${socket._socket.remoteAddress}:${socket._socket.remotePort}`;
+
+  const index = sessions.findIndex((session) => {
+    const playerOId = `${session.playerXSocket._socket.remoteAddress}:${session.playerXSocket._socket.remotePort}`;
+    const playerXId = `${session.playerOSocket._socket.remoteAddress}:${session.playerOSocket._socket.remotePort}`;
+
+    return uniqueId === playerOId || uniqueId === playerXId;
+  });
+
+  if (index !== -1) {
+    let toBeDisconnectedSocket;
+    if (sessions[index].playerOSocket == socket) {
+      toBeDisconnectedSocket = sessions[index].playerXSocket;
+    } else {
+      toBeDisconnectedSocket = sessions[index].playerOSocket;
+    }
+
+    if (toBeDisconnectedSocket) toBeDisconnectedSocket.close();
+
+    sessions.splice(index, 1);
+  }
+
+  console.log(
+    `${socket._socket.remoteAddress}:${socket._socket.remotePort} disconnected`
+  );
+};
+
 exports.handleTestEvent = (socket, message) => {
   console.log("Test event");
   socket.send(`User id is ${message.data}`);

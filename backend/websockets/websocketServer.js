@@ -11,9 +11,7 @@ wsServer.on("connection", (socket) => {
   });
 
   socket.on("close", () => {
-    console.log(
-      `${socket._socket.remoteAddress}:${socket._socket.remotePort} disconnected`
-    );
+    webSocketController.handleWebSocketClosing(socket);
   });
 });
 
