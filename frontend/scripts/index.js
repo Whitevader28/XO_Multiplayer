@@ -1,10 +1,28 @@
+const socket = connect();
+
 window.location.hash = "#menu";
 
+// TODO: don't let the user create a game if he is already in a started game
+// TODO: add messages to join to know if the game you are trying to join does not exist
+// TODO: reconnect logic
+
 document.getElementById("offline").onclick = function () {
-  location.href = "../pages/playSolo.html";
+  window.location.href = "../pages/playSolo.html";
 };
 
-document.getElementById("onlineCreate").onclick = async function () {
+document.getElementById("leaveButton").onclick = function () {
+  try {
+    if (socket.readyState !== WebSocket.OPEN) {
+      sendWaitConnectionMessage();
+      return;
+    }
+    handleLeaveRoomEvent();
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+document.getElementById("onlineCreate").onclick = function () {
   try {
     if (socket.readyState !== WebSocket.OPEN) {
       sendWaitConnectionMessage();

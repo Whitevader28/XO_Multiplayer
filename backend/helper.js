@@ -22,8 +22,14 @@ function generateWebSocketResponse(eventName, payload) {
   });
 }
 
+// Creates the "id" of a socket to identify it from remotePort and remoteAdress
+function getSocketId(socket) {
+  return `${socket._socket.remoteAddress}:${socket._socket.remotePort}`;
+}
+
 module.exports = {
   generateRoomId,
   generateWebSocketResponse,
   generateWebSocketError,
+  getSocketId,
 };

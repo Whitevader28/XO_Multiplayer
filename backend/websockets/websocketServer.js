@@ -3,7 +3,7 @@ const wsServer = new WebSocket.Server({ port: "8080" });
 const webSocketController = require("../controllers/websocketsController");
 
 wsServer.on("connection", (socket) => {
-  webSocketController.handleWebSocketConnection(socket);
+  // webSocketController.handleWebSocketConnection(socket);
 
   socket.on("message", (message) => {
     const parsedMessage = JSON.parse(message);
@@ -20,11 +20,20 @@ function handleWebSocketEvent(socket, message) {
     case "test":
       webSocketController.handleTestEvent(socket, message);
       break;
+    case "connect":
+      webSocketController.handleUserConnectEvent(socket, message);
+      break;
     case "createRoom":
       webSocketController.handleCreateRoomEvent(socket, message);
       break;
     case "joinRoom":
       webSocketController.handleJoinRoomEvent(socket, message);
+      break;
+    case "gameAction":
+      webSocketController.handleGameActionEvent(socket, message);
+      break;
+    case "leaveRoom":
+      webSocketController.handleLeaveRoomEvent(socket, message);
       break;
 
     default:
