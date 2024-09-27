@@ -1,5 +1,23 @@
 const wsURL = "ws://localhost:8080";
 
+// Game initialization
+const cell = [
+  document.getElementById("11"),
+  document.getElementById("12"),
+  document.getElementById("13"),
+  document.getElementById("21"),
+  document.getElementById("22"),
+  document.getElementById("23"),
+  document.getElementById("31"),
+  document.getElementById("32"),
+  document.getElementById("33"),
+];
+let board = ["", "", "", "", "", "", "", "", ""];
+const score = { scoreX: 0, score0: 0 };
+let cellData = [];
+const turn = { number: 0 };
+const currentGame = {};
+
 function connect() {
   const socket = new WebSocket(wsURL);
 
@@ -28,6 +46,16 @@ function connect() {
         break;
       case "gameActioned":
         handleGameActioned(parsedMessage);
+        break;
+      case "gameFinished":
+        handleGameFinished(parsedMessage);
+        break;
+      case "gameReseted":
+        handleGameReseted(parsedMessage);
+        break;
+      case "restoreInfo":
+        handleRestoreInfo(parsedMessage);
+        break;
       case "error":
         handleErrorResponse(parsedMessage);
         break;
@@ -38,18 +66,30 @@ function connect() {
   };
 
   socket.onclose = () => {
-    // handleWebSocketClose();
+    handleWebSocketClose();
   };
 
   return socket;
 }
 
+function handleGameFinished(response) {
+  document.getElementById("winner").innerHTML =
+    "Winner is " + response.data.winner + ". Click to restart";
+  waitResetInput();
+  setScore(response.data.score);
+}
+
+function handleGameReseted(response) {
+  resetBoard(turn);
+}
+
 function handleErrorResponse(response) {
-  console.log(response.data.message);
+  console.log(response);
   alert(response.data.message);
 }
 
 function handleWebSocketClose() {
+  // This will also try reconnecting in the backend
   window.location.reload(true);
 }
 
@@ -70,14 +110,42 @@ function handleRoomJoinedResponse(response) {
   document.getElementById(
     "roomId"
   ).innerHTML = ` (room id: ${response.data.session.id})`;
+
+  currentGame.id = response.data.session.id;
+  setScore(response.data.session.score);
+  resetBoard(turn);
+
+  if (response.data.session.winner) {
+    console.log("winner is set");
+    waitResetInput(turn);
+  }
 }
 
 function handleLeaveRoomEvent() {
   socket.send(generateWebSocketPayload("leaveRoom", { userId: getUserId() }));
 }
 
+function handleRestoreInfo(response) {
+  turn.number = response.data.session.turn === "X" ? 0 : 1;
+  if (response.data.session.winner) {
+    document.getElementById("winner").innerHTML =
+      "Winner is " + response.data.session.winner + ". Click to restart";
+  } else {
+    document.getElementById(
+      "winner"
+    ).innerHTML = `It\'s <span id="currentTurn">${
+      turn.number == 0 ? "X" : "O"
+    }</span> turn`;
+  }
+  setBoard(response.data.session.board);
+}
+
 function handleGameActioned(response) {
-  // TODO: display action
+  turn.number = response.data.turn === "X" ? 0 : 1;
+  document.getElementById("winner").innerHTML = `It\'s <span id="currentTurn">${
+    turn.number == 0 ? "X" : "O"
+  }</span> turn`;
+  setBoard(response.data.board);
 }
 
 function handleCreateRoomEvent() {

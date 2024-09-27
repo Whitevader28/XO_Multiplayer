@@ -5,6 +5,8 @@ const {
   getSocketId,
 } = require("../helper");
 
+const { checkWinner } = require("../gameLogic");
+
 // 10 seconds to reconnect before session gets deleted
 const RECONNECT_TIME_LIMIT = 5000;
 
@@ -132,6 +134,13 @@ function reconnect(socket, userId, userIndex) {
           session: cleanSessionByIndex(sessionIndex),
         })
       );
+
+      // Restore game info if any
+      socket.send(
+        generateWebSocketResponse("restoreInfo", {
+          session: cleanSessionByIndex(sessionIndex),
+        })
+      );
       return;
     }
   }
@@ -172,7 +181,7 @@ exports.handleWebSocketClosing = (socket) => {
   const userIndex = getUserIndexBySocket(socket);
 
   if (userIndex === -1) {
-    console.log("User not set in memory on closing, index: ");
+    console.log("Socket wasn't connected to a user on closing");
     return;
   }
 
@@ -183,8 +192,11 @@ exports.handleWebSocketClosing = (socket) => {
   if (sessionIndex !== -1) {
     // He is in a session, give him time to reconnect before deleting the room
     setTimeout(() => {
-      console.log("TIME OUT ELAPSED");
       // Check if the user reconnected
+      if (users[userIndex].online) {
+        console.log("User had time to reconnect");
+        return;
+      }
 
       if (!users[userIndex]) {
         console.log("Close user doesn't exist");
@@ -193,11 +205,6 @@ exports.handleWebSocketClosing = (socket) => {
 
       if (!sessions[sessionIndex]) {
         console.log("Close session doesn't exist");
-        return;
-      }
-
-      if (users[userIndex].online) {
-        console.log("User had time to reconnect");
         return;
       }
 
@@ -222,9 +229,22 @@ exports.handleWebSocketClosing = (socket) => {
     }, RECONNECT_TIME_LIMIT);
   } else {
     // // User wasn't part of any rooms
-    // // Delete the user
-    users.splice(userIndex, 1);
-    console.log(`${getSocketId(socket)} disconnected`);
+    // // Delete only the user after timeout
+    setTimeout(() => {
+      // Check if the user reconnected
+      if (!users[userIndex]) {
+        console.log("Close user doesn't exist");
+        return;
+      }
+
+      if (users[userIndex].online) {
+        console.log("User had time to reconnect");
+        return;
+      }
+
+      users.splice(userIndex, 1);
+      console.log(`${getSocketId(socket)} disconnected`);
+    }, RECONNECT_TIME_LIMIT);
   }
 };
 
@@ -313,7 +333,149 @@ exports.handleJoinRoomEvent = (socket, message) => {
   );
 };
 
-exports.handleGameActionEvent = (socket, message) => {};
+exports.handleGameActionEvent = (socket, message) => {
+  const userIndex = getUserIndexById(message.data.userId);
+  const sessionIndex = getSessionIndexBySocket(socket);
+
+  if (userIndex === -1) {
+    socket.send(generateWebSocketError("User doesn't exist"));
+    return;
+  }
+
+  if (users[userIndex].socket !== socket) {
+    socket.send(
+      generateWebSocketError("This is not the correct socket for this user")
+    );
+    return;
+  }
+
+  if (sessionIndex === -1) {
+    socket.send(generateWebSocketError("Game doesn't exist"));
+    return;
+  }
+
+  // For player X turn
+  if (
+    sessions[sessionIndex].turn === "X" &&
+    sessions[sessionIndex].playerXIndex === userIndex
+  ) {
+    console.log("X Turn: " + message.data.position);
+
+    sessions[sessionIndex].board[message.data.position] = "X";
+    sessions[sessionIndex].turn = "O";
+
+    const otherSocket = users[sessions[sessionIndex].playerOIndex].socket;
+
+    socket.send(
+      generateWebSocketResponse("gameActioned", {
+        board: sessions[sessionIndex].board,
+        turn: sessions[sessionIndex].turn,
+      })
+    );
+
+    otherSocket.send(
+      generateWebSocketResponse("gameActioned", {
+        board: sessions[sessionIndex].board,
+        turn: sessions[sessionIndex].turn,
+      })
+    );
+  } else if (
+    // For O player turn
+    sessions[sessionIndex].turn === "O" &&
+    sessions[sessionIndex].playerOIndex === userIndex
+  ) {
+    console.log("O Turn: " + message.data.position);
+
+    sessions[sessionIndex].board[message.data.position] = "O";
+    sessions[sessionIndex].turn = "X";
+
+    const otherSocket = users[sessions[sessionIndex].playerXIndex].socket;
+
+    socket.send(
+      generateWebSocketResponse("gameActioned", {
+        board: sessions[sessionIndex].board,
+        turn: sessions[sessionIndex].turn,
+      })
+    );
+
+    otherSocket.send(
+      generateWebSocketResponse("gameActioned", {
+        board: sessions[sessionIndex].board,
+        turn: sessions[sessionIndex].turn,
+      })
+    );
+  } else {
+    console.log("Not your turn");
+    socket.send(generateWebSocketError("Not your turn"));
+    return;
+  }
+
+  // Current turn gets modified before checking winner so we have to go back one step
+  const previousTurn = sessions[sessionIndex].turn === "X" ? "O" : "X";
+
+  if (checkWinner(previousTurn, sessions[sessionIndex].board)) {
+    console.log("WINNER");
+    let winner = "";
+
+    if (previousTurn === "X") {
+      sessions[sessionIndex].score.X++;
+      winner = "X";
+    } else {
+      sessions[sessionIndex].score.O++;
+      winner = "O";
+    }
+
+    sessions[sessionIndex].winner = winner;
+    sessions[sessionIndex].score;
+    const otherSocket =
+      sessions[sessionIndex].playerXIndex === userIndex
+        ? users[sessions[sessionIndex].playerOIndex].socket
+        : users[sessions[sessionIndex].playerXIndex].socket;
+
+    socket.send(
+      generateWebSocketResponse("gameFinished", {
+        score: sessions[sessionIndex].score,
+        winner: winner,
+      })
+    );
+
+    otherSocket.send(
+      generateWebSocketResponse("gameFinished", {
+        score: sessions[sessionIndex].score,
+        winner: winner,
+      })
+    );
+  }
+
+  // TODO: check draw
+};
+
+exports.handleGameResetEvent = (socket, message) => {
+  const userIndex = getUserIndexBySocket(socket);
+  const sessionIndex = getSessionIndexBySocket(socket);
+
+  if (!sessions[sessionIndex]) {
+    console.log("Session doesn't exist on reset");
+    return;
+  }
+
+  if (!users[userIndex]) {
+    console.log("User doesn't exist on reset");
+    return;
+  }
+
+  const otherSocket =
+    sessions[sessionIndex].playerXIndex === userIndex
+      ? users[sessions[sessionIndex].playerOIndex].socket
+      : users[sessions[sessionIndex].playerXIndex].socket;
+
+  sessions[sessionIndex].winner = null;
+  sessions[sessionIndex].turn = "X";
+  sessions[sessionIndex].board = ["", "", "", "", "", "", "", "", ""];
+
+  socket.send(generateWebSocketResponse("gameReseted", {}));
+  otherSocket.send(generateWebSocketResponse("gameReseted", {}));
+};
 
 exports.handleLeaveRoomEvent = (socket, message) => {
   const sessionIndex = getSessionIndexBySocket(socket);

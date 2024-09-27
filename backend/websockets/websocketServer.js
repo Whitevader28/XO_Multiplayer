@@ -32,6 +32,9 @@ function handleWebSocketEvent(socket, message) {
     case "gameAction":
       webSocketController.handleGameActionEvent(socket, message);
       break;
+    case "gameReset":
+      webSocketController.handleGameResetEvent(socket, message);
+      break;
     case "leaveRoom":
       webSocketController.handleLeaveRoomEvent(socket, message);
       break;
