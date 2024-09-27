@@ -7,6 +7,7 @@ window.location.hash = "#menu";
 // TODO: reconnect logic
 
 document.getElementById("offline").onclick = function () {
+  preventOnClose = true;
   window.location.href = "../pages/playSolo.html";
 };
 

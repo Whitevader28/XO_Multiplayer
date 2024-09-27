@@ -1,4 +1,5 @@
 const wsURL = "ws://localhost:8080";
+let preventOnClose = false;
 
 // Game initialization
 const cell = [
@@ -69,7 +70,7 @@ function connect() {
   };
 
   socket.onclose = () => {
-    handleWebSocketClose();
+    if (!preventOnClose) handleWebSocketClose();
   };
 
   return socket;
