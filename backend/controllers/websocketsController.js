@@ -208,19 +208,25 @@ exports.handleWebSocketClosing = (socket) => {
         return;
       }
 
-      // Get the other player's socket
-      const toBeDisconnectedSocket =
-        sessions[sessionIndex].playerXIndex === userIndex
-          ? users[sessions[sessionIndex].playerOIndex].socket
-          : users[sessions[sessionIndex].playerXIndex].socket;
+      // If both player exist
+      if (
+        users[seesions[sessionIndex].playerOIndex] &&
+        users[seesions[sessionIndex].playerXIndex]
+      ) {
+        // Get the other player's socket
+        const toBeDisconnectedSocket =
+          sessions[sessionIndex].playerXIndex === userIndex
+            ? users[sessions[sessionIndex].playerOIndex].socket
+            : users[sessions[sessionIndex].playerXIndex].socket;
 
-      // We now treat what response will the other player get
-      if (toBeDisconnectedSocket) {
-        toBeDisconnectedSocket.send(
-          generateWebSocketResponse("roomDeleted", {
-            message: "The other player left",
-          })
-        );
+        // We now treat what response will the other player get
+        if (toBeDisconnectedSocket) {
+          toBeDisconnectedSocket.send(
+            generateWebSocketResponse("roomDeleted", {
+              message: "The other player left",
+            })
+          );
+        }
       }
 
       // Delete the user and the session
