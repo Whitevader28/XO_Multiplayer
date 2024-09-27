@@ -53,6 +53,9 @@ function connect() {
       case "gameReseted":
         handleGameReseted(parsedMessage);
         break;
+      case "gameDraw":
+        handleGameDraw(parsedMessage);
+        break;
       case "restoreInfo":
         handleRestoreInfo(parsedMessage);
         break;
@@ -70,6 +73,12 @@ function connect() {
   };
 
   return socket;
+}
+
+function handleGameDraw(response) {
+  document.getElementById("winner").innerHTML =
+    "It's a draw :(( Click to restart";
+  waitResetInput();
 }
 
 function handleGameFinished(response) {
@@ -127,7 +136,10 @@ function handleLeaveRoomEvent() {
 
 function handleRestoreInfo(response) {
   turn.number = response.data.session.turn === "X" ? 0 : 1;
-  if (response.data.session.winner) {
+  if (response.data.session.winner === "draw") {
+    document.getElementById("winner").innerHTML =
+      "It's a draw :(( Click to restart";
+  } else if (response.data.session.winner) {
     document.getElementById("winner").innerHTML =
       "Winner is " + response.data.session.winner + ". Click to restart";
   } else {

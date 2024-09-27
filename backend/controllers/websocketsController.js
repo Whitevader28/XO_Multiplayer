@@ -354,6 +354,11 @@ exports.handleGameActionEvent = (socket, message) => {
     return;
   }
 
+  if (sessions[sessionIndex].status !== STATUS.STARTED) {
+    socket.send(generateWebSocketError("Game hasn't started yet"));
+    return;
+  }
+
   // For player X turn
   if (
     sessions[sessionIndex].turn === "X" &&
@@ -445,9 +450,27 @@ exports.handleGameActionEvent = (socket, message) => {
         winner: winner,
       })
     );
+    return;
   }
 
-  // TODO: check draw
+  const turnCount = sessions[sessionIndex].board.reduce((acc, elem) => {
+    return acc + (elem !== "" ? 1 : 0);
+  }, 0);
+
+  console.log(turnCount);
+
+  // Send draw event
+  if (turnCount >= 9) {
+    const otherSocket =
+      sessions[sessionIndex].playerXIndex === userIndex
+        ? users[sessions[sessionIndex].playerOIndex].socket
+        : users[sessions[sessionIndex].playerXIndex].socket;
+
+    sessions[sessionIndex].winner = "draw";
+
+    socket.send(generateWebSocketResponse("gameDraw", {}));
+    otherSocket.send(generateWebSocketResponse("gameDraw", {}));
+  }
 };
 
 exports.handleGameResetEvent = (socket, message) => {
