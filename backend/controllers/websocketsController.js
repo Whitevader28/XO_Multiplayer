@@ -210,8 +210,8 @@ exports.handleWebSocketClosing = (socket) => {
 
       // If both player exist
       if (
-        users[seesions[sessionIndex].playerOIndex] &&
-        users[seesions[sessionIndex].playerXIndex]
+        users[sessions[sessionIndex].playerOIndex] &&
+        users[sessions[sessionIndex].playerXIndex]
       ) {
         // Get the other player's socket
         const toBeDisconnectedSocket =
